@@ -1,0 +1,16 @@
+name: Experiment idea
+description: Propose a follow-up experiment or analysis.
+labels: [experiment]
+body:
+  - type: textarea
+    id: question
+    attributes:
+      label: Research question
+      description: What would the experiment tell us that the current study does not?
+    validations:
+      required: true
+  - type: textarea
+    id: design
+    attributes:
+      label: Proposed design
+      description: What changes, what stays fixed, and how the result would be judged (budget, seeds, metric).

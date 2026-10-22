@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you reference this work, please cite it using these metadata."
+title: "Hyperparameter Tuning of a Fully Connected Network on CIFAR-10"
+abstract: "A controlled study of batch size, batch normalization, random search and Bayesian optimization (TPE) under an equal eight-trial budget, with noise-band decision rules, one-standard-error model selection and a single held-out test evaluation."
+type: software
+authors:
+  - family-names: Goel
+    given-names: Anush
+version: 1.0.0
+date-released: 2026-10-21
+license: MIT
+repository-code: "https://github.com/YOUR-USERNAME/cifar10-hyperparameter-tuning"
+keywords:
+  - hyperparameter optimization
+  - Bayesian optimization
+  - random search
+  - batch normalization
+  - CIFAR-10

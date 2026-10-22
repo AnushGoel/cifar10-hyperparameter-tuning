@@ -1,0 +1,21 @@
+[project]
+name = "cifar10-hyperparameter-tuning"
+version = "1.0.0"
+description = "Controlled hyperparameter-tuning study of a dense network on CIFAR-10: batch size, batch normalization, random search and Bayesian optimization."
+authors = [{ name = "Anush Goel" }]
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+
+[tool.ruff]
+line-length = 150
+target-version = "py310"
+extend-exclude = ["notebooks"]
+
+[tool.ruff.lint]
+# Syntax errors, invalid comparisons, statement errors and undefined names
+select = ["E9", "F63", "F7", "F82"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra -q"

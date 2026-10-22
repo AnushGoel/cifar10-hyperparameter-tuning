@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+
+# Tooling
+.ipynb_checkpoints/
+.pytest_cache/
+.ruff_cache/
+.DS_Store
+
+# Training artifacts that are large or easy to regenerate.
+# results/ itself IS committed: the report and the deployed dashboard read it.
+results.zip
+results/weights/
+*.keras

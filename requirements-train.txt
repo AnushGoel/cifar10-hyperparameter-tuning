@@ -1,0 +1,8 @@
+# Only needed to run the notebook outside Colab (Colab already has all but Optuna)
+tensorflow>=2.16
+optuna>=3.6
+scikit-learn>=1.3
+scipy>=1.10
+matplotlib>=3.7
+pandas>=2.0
+numpy>=1.24
