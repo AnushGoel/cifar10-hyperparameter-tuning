@@ -2,7 +2,7 @@
 streamlit>=1.36
 plotly>=5.20
 pandas>=2.0
-numpy>=1.24
+numpy>=2.2.6
 pillow>=10.0
 # Optional: enables "Classify your own image" in the dashboard
 # tensorflow>=2.16
