@@ -1,0 +1,17 @@
+method,trial,phase,learning_rate,batch_size,layers,units,dropout,best_val_acc,best_epoch,epochs_run,status,observation,total_time,params,jitter_pp,name
+random,1,random,0.005,256,4,512,0.2,0.4674000144004822,26,30,unstable,Noisy validation curve (±3.4 pp per epoch); large train–val gap (32 pp),44.40582604200017,2372618,3.421121907942104,random_t1
+random,2,random,0.001,256,2,256,0.2,0.4560000002384186,7,15,ok,Steady training with a moderate train–val gap,19.371347152999988,856586,1.3579393214802387,random_t2
+random,3,random,0.005,64,4,128,0.0,0.44920000433921814,3,11,ok,Peaked early (epoch 3),54.59827949800001,445706,1.307669438749323,random_t3
+random,4,random,0.001,128,3,128,0.0,0.4075999855995178,5,13,unstable,Peaked early (epoch 5); noisy validation curve (±2.2 pp per epoch); large train–val gap (19 pp),29.968835939999735,428810,2.160738985615242,random_t4
+random,5,random,0.0005,128,4,256,0.4,0.4903999865055084,13,21,ok,"Small train–val gap, capacity-limited",59.66872393099993,989706,1.6767701836106437,random_t5
+random,6,random,0.0005,128,4,512,0.2,0.4625999927520752,6,14,unstable,Noisy validation curve (±4.6 pp per epoch),40.16593266700011,2372618,4.564225686498093,random_t6
+random,7,random,0.0001,64,3,128,0.2,0.5040000081062317,27,30,ok,Steady training with a moderate train–val gap,135.1969975029997,428810,1.8054892359597305,random_t7
+random,8,random,0.005,32,2,256,0.4,0.5105999708175659,23,30,unstable,Noisy validation curve (±2.2 pp per epoch),216.04318943399994,856586,2.187823065792321,random_t8
+bayes,1,random warm-up,0.0005,256,4,256,0.0,0.41040000319480896,4,12,ok,Peaked early (epoch 4); large train–val gap (19 pp),18.96421426500001,989706,1.5413432583812468,bayes_t1
+bayes,2,random warm-up,0.0001,32,4,256,0.4,0.5314000248908997,27,30,ok,"Small train–val gap, capacity-limited",299.9332959829999,989706,1.4981364969849496,bayes_t2
+bayes,3,random warm-up,0.0001,256,4,128,0.0,0.45320001244544983,9,17,ok,Steady training with a moderate train–val gap,25.58563933100004,445706,0.804961231564092,bayes_t3
+bayes,4,TPE-guided,0.0001,32,4,128,0.4,0.48500001430511475,28,30,ok,"Small train–val gap, capacity-limited",297.0571418310001,445706,1.2326366138421663,bayes_t4
+bayes,5,TPE-guided,0.005,32,3,512,0.4,0.5123999714851379,28,30,ok,Steady training with a moderate train–val gap,259.53269940899963,2108426,1.911499770395625,bayes_t5
+bayes,6,TPE-guided,0.0005,32,2,256,0.0,0.4277999997138977,6,14,ok,Large train–val gap (21 pp),97.40195424600006,856586,1.739837253134454,bayes_t6
+bayes,7,TPE-guided,0.0001,128,4,256,0.4,0.4941999912261963,21,29,ok,"Small train–val gap, capacity-limited",78.67039986200052,989706,1.6654166928319214,bayes_t7
+bayes,8,TPE-guided,0.005,128,3,128,0.2,0.4828000068664551,20,28,ok,Steady training with a moderate train–val gap,66.22703373500008,428810,1.818749947025034,bayes_t8
