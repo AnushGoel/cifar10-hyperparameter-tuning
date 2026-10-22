@@ -11,7 +11,7 @@ Assignment 3: Hyperparameter Tuning
 
 ## Abstract
 
-Hyperparameter tuning is often reported as a single winning configuration with no indication of how much of the improvement is real. I tuned a fully connected network on CIFAR-10 through a sequence of one-variable-at-a-time experiments followed by two equal-budget searches. Every decision was made on a stratified 5,000-image validation set, using an explicit noise band and paired McNemar tests, and the test set was touched exactly once. The fixed baseline reached {{BASE_BEST_VAL_ACC}} validation accuracy and began to overfit after its best epoch. {{BN_VERDICT_SENTENCE}} Eight trials of random search reached {{RS_BEST_ACC}} and eight trials of Bayesian optimization with a Tree-structured Parzen Estimator reached {{BO_BEST_ACC}}. {{CMP_VERDICT_SENTENCE}} A one-standard-error selection rule chose `{{FINAL_NAME}}` ({{FINAL_DESCRIPTION}}). It scored {{FINAL_VAL_ACC}} on validation and {{FINAL_TEST_ACC}} on the held-out test set (95% bootstrap CI {{CI_SHORT}}). The study's main lessons are methodological: compare batch sizes by updates and wall-clock time as well as by epochs, check that a "Bayesian" tuner is not secretly random under a small budget, and treat differences inside the sampling noise of the validation set as ties.
+Hyperparameter tuning is often reported as a single winning configuration with no indication of how much of the improvement is real. I tuned a fully connected network on CIFAR-10 through one-variable-at-a-time experiments followed by two equal-budget searches, making every decision on a stratified 5,000-image validation set with an explicit noise band and paired McNemar tests, and touching the test set exactly once. The fixed baseline reached {{BASE_BEST_VAL_ACC}} validation accuracy before overfitting. Under a fixed 30-epoch budget, larger batches trained eight times faster and generalized slightly better. Batch normalization on its own let the network memorize its training set and cut validation accuracy by more than 9 percentage points, yet every strong configuration in the searches used it together with dropout, which proved the most decisive hyperparameter: all five dropout-free trials scored below all eleven trials with dropout. Bayesian optimization (TPE) beat random search, {{BO_BEST_ACC}} against {{RS_BEST_ACC}}, but its winning configuration came from a random warm-up trial, not from the model. A one-standard-error rule selected `{{FINAL_NAME}}` ({{FINAL_DESCRIPTION}}), which scored {{FINAL_VAL_ACC}} on validation and {{FINAL_TEST_ACC}} on the held-out test set (95% bootstrap CI {{CI_SHORT}}) and was well calibrated (ECE {{FINAL_ECE_VALUE}}). The main lessons are methodological: compare batch sizes on every clock, judge batch normalization together with its regularization and batch size, check whether a Bayesian tuner's best result actually came from its model, and treat differences inside the sampling noise of the validation set as ties.
 
 ---
 
@@ -89,7 +89,7 @@ The experiments ran on {{HARDWARE}} with {{SOFTWARE}}. In total, {{N_RUNS}} trai
 ![Figure 2](docs/figures/figure_02.png)
 *Figure 2. Baseline loss and accuracy. The shaded region marks epochs after the validation-loss minimum.*
 
-{{BASE_TRAIN_SENTENCE}} {{BASE_ACC_SENTENCE}} {{BASE_TREND_SENTENCE}} {{BASE_GAP_SENTENCE}} {{BASE_STABILITY_SENTENCE}}
+{{BASE_TRAIN_SENTENCE}} {{BASE_ACC_SENTENCE}} {{BASE_TREND_SENTENCE}} {{BASE_GAP_SENTENCE}} The negative starting gap is an artefact of how Keras reports training accuracy: it is averaged over the epoch while the weights are still improving, whereas validation accuracy is measured at the end of it. {{BASE_STABILITY_SENTENCE}}
 
 The baseline therefore fits its training data easily but generalizes poorly. A dense layer has no notion of spatial locality, so it must learn the same feature separately at every position. Convolutional layers avoid this through parameter sharing (Goodfellow et al., 2016), which caps what any amount of tuning can achieve with this architecture.
 
@@ -109,6 +109,8 @@ The baseline therefore fits its training data easily but generalizes poorly. A d
 
 {{BS_SELECT_SENTENCE}}
 
+The large batch's small advantage runs against the intuition that small-batch gradient noise regularizes and large batches generalize worse (Keskar et al., 2017). The fixed budget is the likely explanation: 30 epochs at batch 512 is only 2,640 updates, fewer than batch 32 makes in its first two epochs, so the large-batch network stopped close to its best point and had little chance to overfit. This is consistent with the view that much of the large-batch gap is about the number of updates rather than batch size itself (Goyal et al., 2017; Hoffer et al., 2017).
+
 ### 4.3 RQ2: Batch normalization
 
 **Table 2.** Batch normalization at batch size {{SELECTED_BS}}, all other settings fixed.
@@ -119,6 +121,8 @@ The baseline therefore fits its training data easily but generalizes poorly. A d
 *Figure 5. With and without batch normalization: loss, accuracy, generalization gap and epoch-to-epoch stability.*
 
 {{BN_ACC_SENTENCE}} {{BN_LOSS_SENTENCE}} {{BN_SPEED_SENTENCE}} {{BN_STABILITY_SENTENCE}} {{BN_GAP_SENTENCE}} {{BN_TIME_SENTENCE}} {{BN_VERDICT_SENTENCE}}
+
+**Why batch normalization hurt here.** Two mechanisms are visible in Figure 5. First, memorization: batch normalization did speed up optimization, as the literature predicts (Ioffe & Szegedy, 2015; Santurkar et al., 2018). After six epochs the normalized network had 67% training accuracy against 46% for the plain one, and it ended near 95%, while its validation loss climbed above 4, the signature of a confidently wrong model. With no dropout, nothing restrained that. Second, stale statistics: at evaluation time batch normalization uses running averages that Keras updates with momentum 0.99, a window of roughly 100 updates. At batch 512 an epoch has only 88 updates, so after epoch 1 about 0.99⁸⁸ ≈ 41% of the averages still reflected their initial values, and thereafter they described weights from about an epoch earlier. This fits both the poor first-epoch validation accuracy and the jagged validation curve. The verdict therefore applies to batch normalization at large batch sizes without dropout; Sections 4.4 and 4.5 show the same layer inside every strong configuration once those conditions change.
 
 **Extension.** {{EXT_SENTENCE}} Because this changes the learning rate as well, it is reported separately (Figure 6).
 
@@ -131,7 +135,7 @@ The baseline therefore fits its training data easily but generalizes poorly. A d
 
 {{TABLE_RANDOM}}
 
-{{RS_BEST_SENTENCE}} {{RS_SPREAD_SENTENCE}} {{RS_EFFECT_SENTENCE}} {{RS_UNSTABLE_SENTENCE}}
+{{RS_BEST_SENTENCE}} {{RS_SPREAD_SENTENCE}} {{RS_EFFECT_SENTENCE}} {{RS_UNSTABLE_SENTENCE}} The best random trial was itself flagged as unstable, so its score comes with a caveat, and two of the four flagged trials used the largest learning rate. The smallest learning rate, which might be expected to converge too slowly in 30 epochs, produced one of the best and steadiest trials.
 
 ![Figure 7](docs/figures/figure_07.png)
 *Figure 7. Each random-search trial's best validation accuracy by hyperparameter value (bars show group means).*
@@ -156,6 +160,10 @@ The baseline therefore fits its training data easily but generalizes poorly. A d
 
 {{CMP_ACC_SENTENCE}} {{CMP_TRIALS_SENTENCE}} {{CMP_STABILITY_SENTENCE}} {{CMP_COMPUTE_SENTENCE}}
 
+**Where the Bayesian win came from.** Trial 2, the winning configuration, was one of the three random warm-up trials, drawn before TPE had modelled anything, and none of the five guided trials improved on it. The guided trials did learn from the warm-up: four of the five used dropout of at least 0.2, three used dropout 0.4 and three used batch size 32, the settings behind the warm-up winner. That is why none of them was unstable. The headline comparison therefore reflects the luck of a random draw more than the value of the surrogate.
+
+**What mattered across all sixteen trials.** Dropout dominated. Every one of the five dropout-free trials scored below every one of the eleven trials that used dropout (best without dropout 45.32%, worst with it 45.60%), and mean best validation accuracy rose from 43.0% at dropout 0 to 47.5% at 0.2 and 50.4% at 0.4. Batch size reversed its Step 3 trend: with batch normalization and dropout, mean accuracy fell steadily from 49.3% at batch 32 to 44.7% at batch 256, consistent with small batches keeping batch normalization's running statistics current.
+
 ![Figure 10](docs/figures/figure_10.png)
 *Figure 10. Two rough views of hyperparameter importance: the pooled spread in group means and Optuna's fANOVA importance.*
 
@@ -170,7 +178,7 @@ The baseline therefore fits its training data easily but generalizes poorly. A d
 ![Figure 11](docs/figures/figure_11.png)
 *Figure 11. Test-set confusion matrix, per-class accuracy, reliability diagram and bootstrap distribution of test accuracy.*
 
-{{FINAL_CLASS_SENTENCE}} {{FINAL_CONFUSED_SENTENCE}} {{FINAL_CALIB_SENTENCE}}
+{{FINAL_CLASS_SENTENCE}} {{FINAL_CONFUSED_SENTENCE}} More dog images were labelled as cats (327) than as dogs (314), and the other leading confusions pair classes with similar backgrounds and colours, which a dense network on raw pixels relies on heavily. {{FINAL_CALIB_SENTENCE}} This is unusually good calibration. Guo et al. (2017) found that miscalibration tends to grow with model capacity and shrink with stronger regularization; a mid-sized network trained with dropout of 0.4 sits at the well-calibrated end, so its probabilities can be taken roughly at face value.
 
 ![Figure 12](docs/figures/figure_12.png)
 *Figure 12. The sixteen most confident mistakes on the test set.*
@@ -184,7 +192,7 @@ The baseline therefore fits its training data easily but generalizes poorly. A d
 ![Figure 13](docs/figures/figure_13.png)
 *Figure 13. Best validation accuracy at each stage with 95% sampling intervals; the diamond shows the final model's test accuracy.*
 
-{{SUMMARY_GAIN_SENTENCE}} {{SUMMARY_LEVER_SENTENCE}} {{SUMMARY_PEAK_SENTENCE}} {{SUMMARY_RANGE_SENTENCE}}
+{{SUMMARY_GAIN_SENTENCE}} {{SUMMARY_LEVER_SENTENCE}} Measured against the best plain network (49.78% at batch 512) rather than the weakened batch-norm reference, the search added 3.36 pp. {{SUMMARY_PEAK_SENTENCE}} {{SUMMARY_RANGE_SENTENCE}}
 
 {{SEED_SENTENCE}}
 
@@ -193,13 +201,13 @@ The baseline therefore fits its training data easily but generalizes poorly. A d
 
 ## 5. Discussion
 
-**RQ1: Batch size changes the path more than the destination.** {{REF_BS_SENTENCE}} Comparing runs by epoch alone would have suggested that small batches learn faster, but per update the large batch made more progress, and per second it was much cheaper. For a fixed learning rate, the practical question is which setting delivers a given validation accuracy for the least compute, and only the wall-clock view answers it.
+**RQ1: Under a fixed budget, batch size changed both the path and the destination.** {{REF_BS_SENTENCE}} Comparing runs by epoch alone would have suggested that small batches learn faster, but per update the large batch made more progress, and per second it was eight times cheaper. Its small accuracy advantage is best explained by the budget: 2,640 updates left the network near its best point rather than past it. Once batch normalization and dropout were added in the searches the trend reversed, which shows that the right batch size depends on the rest of the configuration.
 
-**RQ2: Batch normalization mainly helps optimization.** {{REF_BN_SENTENCE}} This is consistent with the smoother-landscape account (Santurkar et al., 2018). Batch normalization did not, on its own, prevent the network from memorizing the training set; that requires an explicit regularizer such as dropout (Srivastava et al., 2014). {{REF_GEN_SENTENCE}}
+**RQ2: Batch normalization is only as good as the setting it is used in.** {{REF_BN_SENTENCE}} The normalized network fitted 95% of its training set, so the optimization benefit described by Santurkar et al. (2018) was real, but without other regularization it simply memorized faster, and at 88 updates per epoch its running statistics lagged behind the weights. In the searches, the same layer appeared in every strong configuration once it was paired with dropout and small batches. {{REF_GEN_SENTENCE}} Dropout was the decisive regularizer (Srivastava et al., 2014): all five dropout-free search trials scored below all eleven that used it.
 
-**RQ3: At eight trials, the protocol matters more than the search method.** {{REF_SEARCH_SENTENCE}} With three warm-up trials, TPE had five model-guided proposals in which to make up ground, which is very little data for a surrogate model; published gains from Bayesian optimization usually appear over dozens to hundreds of evaluations (Shahriari et al., 2016). {{REF_HP_SENTENCE}} The most consequential configuration choice in the whole study was invisible in the results tables: with Optuna's default warm-up, the comparison would have been random search against random search.
+**RQ3: At eight trials, luck and protocol matter more than the search method.** {{REF_SEARCH_SENTENCE}} The headline favours Bayesian optimization, but its best configuration came from a random warm-up draw, and none of the five model-guided trials improved on it. What the guided trials did show was the start of learning: they concentrated on dropout and small batches, and none was unstable, against four unstable random-search trials. Published gains from Bayesian optimization usually appear over dozens to hundreds of evaluations (Shahriari et al., 2016). {{REF_HP_SENTENCE}} The most consequential configuration choice was invisible in the results tables: with Optuna's default warm-up of ten trials, both searches would have been random.
 
-**RQ4: A defensible final model.** {{REF_FINAL_SENTENCE}} It was chosen by a rule fixed before the test set was opened; {{REF_WHY_CLAUSE}}; and its test score was measured exactly once and reported with an uncertainty interval. The gap between validation and test accuracy is the expected cost of selecting on the validation set, and it is the main reason the test set was kept separate.
+**RQ4: A defensible final model.** {{REF_FINAL_SENTENCE}} It was chosen by a rule fixed before the test set was opened; {{REF_WHY_CLAUSE}}; and its test score was measured exactly once and reported with an uncertainty interval. Test accuracy landed within 0.1 pp of validation, so the selection does not appear to have overfit the validation set. The seed check adds a caution: across four seeds the configuration averaged 52.13%, so the 53.14% it was selected on was about 1 pp lucky, a small instance of the winner's curse that a single-seed study cannot see.
 
 ## 6. Limitations and threats to validity
 
@@ -211,10 +219,10 @@ The baseline therefore fits its training data easily but generalizes poorly. A d
 
 ## 7. Recommendations and future work
 
-1. {{REC_CONFIG_SENTENCE}}
+1. {{REC_CONFIG_SENTENCE}} Use batch normalization only together with dropout and small batches.
 2. Add a learning-rate schedule such as cosine annealing (Loshchilov & Hutter, 2017) and search the learning rate on a continuous log scale.
 3. With a larger budget, use multi-fidelity search such as Hyperband (Li et al., 2018), and rerun the top configurations over several seeds before declaring a winner.
-4. Apply post-hoc temperature scaling, fitted on the validation set, if the model's probabilities are to be used for decisions (Guo et al., 2017).
+4. Widen the dropout range beyond 0.4 and allow more epochs for small learning rates: accuracy was still rising at the top of the dropout range, and the final model peaked at epoch 27 of 30.
 5. For substantive accuracy gains, change the architecture: convolutional layers and simple data augmentation address the bottleneck identified in Section 4.1 (Goodfellow et al., 2016).
 
 ## 8. Reproducibility statement

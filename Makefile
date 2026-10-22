@@ -16,7 +16,7 @@ install-dev: ## Install everything needed for tests and linting
 	$(PY) -m pip install -r requirements.txt -r requirements-dev.txt
 
 report: ## Fill the notebook analysis and build REPORT.md from results/ (optional: REPO=owner/name)
-	$(PY) scripts/fill_report.py $(NOTEBOOK)
+	$(PY) scripts/finalize_notebook.py $(NOTEBOOK)
 	$(PY) scripts/build_report.py $(if $(REPO),--repo $(REPO),)
 
 app: ## Launch the Streamlit dashboard

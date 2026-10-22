@@ -12,8 +12,10 @@ def make_repo(tmp_path: Path) -> Path:
     root = tmp_path / "repo"
     (root / "reports").mkdir(parents=True)
     shutil.copy(ROOT / "reports" / "REPORT.template.md", root / "reports")
-    shutil.copy(ROOT / "README.md", root)
-    shutil.copy(ROOT / "CITATION.cff", root)
+    slug = build_report.REPO_PLACEHOLDER
+    (root / "README.md").write_text(f"# Demo\n[CI](https://github.com/{slug}/actions)\n\n{build_report.START}\npending\n{build_report.END}\n",
+                                    encoding="utf-8")
+    (root / "CITATION.cff").write_text(f'repository-code: "https://github.com/{slug}"\n', encoding="utf-8")
     return root
 
 

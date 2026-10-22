@@ -9,7 +9,7 @@ authors:
 version: 1.0.0
 date-released: 2026-10-21
 license: MIT
-repository-code: "https://github.com/YOUR-USERNAME/cifar10-hyperparameter-tuning"
+repository-code: "https://github.com/AnushGoel/cifar10-hyperparameter-tuning"
 keywords:
   - hyperparameter optimization
   - Bayesian optimization
