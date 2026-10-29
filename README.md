@@ -9,7 +9,7 @@
 ![Python](https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white)
 ![TensorFlow](https://img.shields.io/badge/TensorFlow-2.16%2B-FF6F00?logo=tensorflow&logoColor=white)
 ![Optuna](https://img.shields.io/badge/Optuna-TPE-0F7C80)
-![Streamlit](https://img.shields.io/badge/dashboard-Streamlit-FF4B4B?logo=streamlit&logoColor=white)
+[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://cifar10-hyperparameter-tuning-jrf6jiyoajwtwcedcg5gow.streamlit.app/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-lightgrey)](LICENSE)
 
 [**Research report**](REPORT.md) · [**Notebook**](notebooks/Assignment3_Hyperparameter_Tuning_Anush_Goel.ipynb) · [**Dashboard**](#interactive-dashboard) · [**Reproduce**](#reproduce-the-study)
