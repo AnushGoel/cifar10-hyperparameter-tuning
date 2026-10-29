@@ -96,7 +96,7 @@ flowchart LR
 All 14 figures, with discussion, are in the [research report](REPORT.md).
 
 ## Interactive dashboard
-
+### [![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://cifar10-hyperparameter-tuning-jrf6jiyoajwtwcedcg5gow.streamlit.app/)
 `streamlit_app.py` turns the run logs into an explorable lab notebook:
 
 - **Overview:** a contact sheet of test images framed by whether the model got them right, the tuning journey, and the headline findings
